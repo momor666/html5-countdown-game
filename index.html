@@ -1,0 +1,148 @@
+<!doctype html>
+<html manifest="countdown.appcache">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta charset=utf8>
+<title>countdown</title>
+<link href="favicon.ico" rel="icon" type="image/x-icon">
+<style>
+body, p, button, h1, div, h2 {
+    text-align: center;
+    font-family: sans-serif;
+}
+#best {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+}
+button {
+    color: white;
+    box-shadow: black 2px 2px 2px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50px;
+    outline: 0;
+}
+button.begin {
+    border: 1px solid red;
+    background: red;
+    background-image: linear-gradient(top, #FF0000 21%, #FA4B4B 51%);
+    background-image: -o-linear-gradient(top, #FF0000 21%, #FA4B4B 51%);
+    background-image: -moz-linear-gradient(top, #FF0000 21%, #FA4B4B 51%);
+    background-image: -webkit-linear-gradient(top, #FF0000 21%, #FA4B4B 51%);
+    background-image: -ms-linear-gradient(top, #FF0000 21%, #FA4B4B 51%);
+
+    background-image: -webkit-gradient(
+	    linear,
+	    left top,
+	    left bottom,
+	    color-stop(0.21, #FF0000),
+	    color-stop(0.51, #FA4B4B)
+    );
+}
+button.timing {
+    border: 1px solid green;
+    background: green;
+    background-image: linear-gradient(top, #00FF00 21%, #4BFA4B 51%);
+    background-image: -o-linear-gradient(top, #00FF00 21%, #4BFA4B 51%);
+    background-image: -moz-linear-gradient(top, #00FF00 21%, #4BFA4B 51%);
+    background-image: -webkit-linear-gradient(top, #00FF00 21%, #4BFA4B 51%);
+    background-image: -ms-linear-gradient(top, #00FF00 21%, #4BFA4B 51%);
+
+    background-image: -webkit-gradient(
+	    linear,
+	    left top,
+	    left bottom,
+	    color-stop(0.21, #00FF00),
+	    color-stop(0.51, #4BFA4B)
+    );
+}
+
+div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: red;
+    color: white;
+    display: none;
+}
+
+</style>
+</head>
+<body>
+<h1>countdown</h1>
+<p id="timer">?</p>
+<button class="begin">begin</button>
+<p id="best">Closest so far: <span>?</span> away</p>
+<div><h2><span id="diff">7000</span> away</h2><p>not bad</p></div>
+<script>
+(function() {
+    var b = document.getElementsByTagName("button")[0], t = document.getElementById("timer"), d = document.getElementsByTagName("div")[0];
+    var iv, start = new Date();
+    var method = ("ontouchstart" in document.documentElement) ? "ontouchstart" : "onclick";
+    var bestsofar = localStorage.getItem("countdown-best-so-far");
+    if (bestsofar) {
+        bestsofar = parseInt(bestsofar)
+    } else {
+        bestsofar = 7000;
+    }
+    document.querySelector("#best span").firstChild.nodeValue = (bestsofar / 1000).toFixed(3).toString();
+    b[method] = function(e) {
+        if (b.className == "begin") {
+            b.className = "timing";
+            b.firstChild.nodeValue = "stop me!";
+            t.firstChild.nodeValue = "7.0";
+            var counter = 7.0;
+            start = new Date().getTime();
+            iv = setInterval(function() {
+                counter -= 0.1;
+                t.firstChild.nodeValue = counter > 2.5 ? counter.toFixed(1).toString() : "?.?";
+            }, 100);
+        } else {
+            clearInterval(iv);
+            b.className = "begin";
+            b.firstChild.nodeValue = "begin";
+            t.firstChild.nodeValue = "?";
+            var size = Math.abs(7000 - ((new Date().getTime()) - start));
+            if (size < bestsofar) {
+                localStorage.setItem("countdown-best-so-far", size.toString());
+                bestsofar = size;
+                document.querySelector("#best span").firstChild.nodeValue = (bestsofar / 1000).toFixed(3).toString();
+                document.querySelector("div p").firstChild.nodeValue = "a personal best!";
+            }
+            document.getElementById("diff").firstChild.nodeValue = (size / 1000).toFixed(3).toString();
+            d.style.display = "block";
+        }
+        e.preventDefault();
+        b.blur();
+    }
+    d[method] = function(e) {
+        d.style.display = "none";
+        e.preventDefault();
+    }
+    
+})();
+
+// Check if a new cache is available on page load: thanks http://www.html5rocks.com/en/tutorials/appcache/beginner/
+window.addEventListener('load', function(e) {
+  window.applicationCache.addEventListener('updateready', function(e) {
+    if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+      // Browser downloaded a new app cache.
+      // Swap it in and reload the page to get the new hotness.
+      window.applicationCache.swapCache();
+      if (confirm('A new version of this site is available. Load it?')) {
+        window.location.reload();
+      }
+    } else {
+      // Manifest didn't changed. Nothing new to server.
+    }
+  }, false);
+}, false);
+</script>
+</body>
+</html>
+
